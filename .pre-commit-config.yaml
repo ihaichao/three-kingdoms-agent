@@ -1,0 +1,21 @@
+default_language_version:
+  python: python3.11
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace        # 清行尾空白
+      - id: end-of-file-fixer          # 文件末尾补换行
+      - id: check-yaml                 # docker-compose.yml 语法
+      - id: check-toml                 # pyproject.toml 语法
+      - id: check-added-large-files    # 防止误提交大文件
+        args: [--maxkb=5120]
+      - id: check-merge-conflict
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.7
+    hooks:
+      - id: ruff-check                 # lint，能自动修的就修
+        args: [--fix]
+      - id: ruff-format                # 格式化，等价于 black

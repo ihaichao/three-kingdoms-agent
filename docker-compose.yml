@@ -1,0 +1,51 @@
+services:
+  local_dev_atlas:
+    image: mongodb/mongodb-atlas-local:8.0
+    hostname: local_dev_atlas
+    ports:
+      - 27017:27017
+    environment:
+      - MONGODB_INITDB_ROOT_USERNAME=tkagent
+      - MONGODB_INITDB_ROOT_PASSWORD=tkagent
+    volumes:
+      - data:/data/db
+      - config:/data/configdb
+    networks:
+      - three-kingdoms-network
+
+  api:
+    container_name: three-kingdoms-api
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    environment:
+      - MONGODB_URI=mongodb://tkagent:tkagent@local_dev_atlas:27017/?directConnection=true
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./api/.env
+    networks:
+      - three-kingdoms-network
+
+  ui:
+    container_name: three-kingdoms-ui
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./ui:/app
+      - /app/node_modules
+    depends_on:
+      - api
+    networks:
+      - three-kingdoms-network
+
+volumes:
+  data:
+  config:
+
+networks:
+  three-kingdoms-network:
+    name: three-kingdoms-network
