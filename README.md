@@ -32,7 +32,7 @@ make infrastructure-up
 ## 进度
 
 - [x] 模块 0：脚手架搭好，环境跑通
-- [ ] 模块 1：裸 LangGraph，能和一个角色对话
+- [x] 模块 1：裸 LangGraph，六个三国人物能对话（无记忆）
 - [ ] 模块 2：短期记忆（MongoDB checkpointer）
 - [ ] 模块 3：RAG 长期记忆
 - [ ] 模块 4：评估 + LLMOps

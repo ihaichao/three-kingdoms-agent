@@ -59,46 +59,28 @@ export class Game extends Scene
 
     createPhilosophers(map, layers) {
         const philosopherConfigs = [
-            { id: "socrates", name: "Socrates", defaultDirection: "right", roamRadius: 800 },
-            { id: "aristotle", name: "Aristotle", defaultDirection: "right", roamRadius: 700 },
-            { id: "plato", name: "Plato", defaultDirection: "front", roamRadius: 750 },
-            { id: "descartes", name: "Descartes", defaultDirection: "front", roamRadius: 650 },
-            { id: "leibniz", name: "Leibniz", defaultDirection: "front", roamRadius: 720 },
-            { id: "ada_lovelace", name: "Ada Lovelace", defaultDirection: "front", roamRadius: 680 },
-            { id: "turing", name: "Turing", defaultDirection: "front", roamRadius: 770 },
-            { id: "searle", name: "Searle", defaultDirection: "front", roamRadius: 730 },
-            { id: "chomsky", name: "Chomsky", defaultDirection: "front", roamRadius: 690 },
-            { id: "dennett", name: "Dennett", defaultDirection: "front", roamRadius: 710 },
-            {
-                id: "miguel",
-                name: "Miguel",
-                defaultDirection: "front",
-                roamRadius: 300,
-                defaultMessage: "Hey there! I'm Miguel, but you can call me Mr Agent. I'd love to chat, but I'm currently writing my Substack article for tomorrow. If you're curious about my work, take a look at The Neural Maze!"
-            },
-            {
-                id: "paul",
-                name: "Paul",
-                defaultDirection: "front",
-                roamRadius: 300,
-                defaultMessage: "Hey, I'm busy teaching my cat AI with my latest course. I can't talk right now. Check out Decoding ML for more on my thoughts."
-            }
+            { id: "zhugeliang", name: "诸葛亮", spawnName: "Socrates",   framePrefix: "socrates",  atlas: "zhugeliang", defaultDirection: "right", roamRadius: 800 },
+            { id: "liubei",     name: "刘备",   spawnName: "Plato",      framePrefix: "plato",     atlas: "liubei",     defaultDirection: "front", roamRadius: 750 },
+            { id: "caocao",     name: "曹操",   spawnName: "Aristotle",  framePrefix: "aristotle", atlas: "caocao",     defaultDirection: "front", roamRadius: 700 },
+            { id: "simayi",     name: "司马懿", spawnName: "Descartes",  framePrefix: "descartes", atlas: "simayi",     defaultDirection: "front", roamRadius: 650 },
+            { id: "sunquan",    name: "孙权",   spawnName: "Leibniz",    framePrefix: "leibniz",   atlas: "sunquan",    defaultDirection: "front", roamRadius: 720 },
+            { id: "zhouyu",     name: "周瑜",   spawnName: "Turing",     framePrefix: "turing",    atlas: "zhouyu",     defaultDirection: "front", roamRadius: 770 },
         ];
 
         this.philosophers = [];
 
         philosopherConfigs.forEach(config => {
-            const spawnPoint = map.findObject("Objects", (obj) => obj.name === config.name);
+            const spawnPoint = map.findObject("Objects", (obj) => obj.name === (config.spawnName || config.name));
+            if (!spawnPoint) {
+                console.error(`Spawn point not found for ${config.name}`);
+                return;
+            }
 
             this[config.id] = new Character(this, {
-                id: config.id,
-                name: config.name,
+                ...config,
                 spawnPoint: spawnPoint,
-                atlas: config.id,
-                defaultDirection: config.defaultDirection,
+                atlas: config.atlas || config.id,
                 worldLayer: layers.worldLayer,
-                defaultMessage: config.defaultMessage,
-                roamRadius: config.roamRadius,
                 moveSpeed: config.moveSpeed || 40,
                 pauseChance: config.pauseChance || 0.2,
                 directionChangeChance: config.directionChangeChance || 0.3,

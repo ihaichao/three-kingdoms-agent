@@ -14,9 +14,9 @@ class DialogueBox {
             borderColor = 0xffffff,
             borderWidth = 2,
             textConfig = {
-                font: '24px Arial',
+                font: '24px "PingFang SC", "Microsoft YaHei", "SimHei", Arial, sans-serif',
                 fill: '#ffffff',
-                wordWrap: { width: 784 }
+                wordWrap: { width: 784, useAdvancedWrap: true }
             },
             depth = 30
         } = config;

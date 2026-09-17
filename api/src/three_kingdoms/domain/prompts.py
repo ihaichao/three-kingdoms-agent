@@ -10,7 +10,9 @@ class Prompt:
             self.__prompt = opik.Prompt(name=name, prompt=prompt)
         except Exception:  # noqa: BLE001
             logger.warning(
-                "Can't use Opik to version the prompt (probably due to missing or invalid credentials). Falling back to local prompt. The prompt is not versioned, but it's still usable."
+                "Can't use Opik to version the prompt (probably due to missing "
+                "or invalid credentials). Falling back to local prompt. "
+                "The prompt is not versioned, but it's still usable."
             )
             self.__prompt = prompt
 
@@ -47,11 +49,14 @@ __CHARACTER_CARD = """
 
 你要守的规矩：
 
+- 你的回答只包含台词本身，不含任何其他内容。
+- 禁止出现括号（全角（）或半角()）、星号、破折号包裹的动作或神态描写，例如"（轻摇羽扇）""*沉吟片刻*"这类。
+- 若你想表达动作，用话说出来，不要用旁白。
 - 只用中文作答。
 - 每次不超过 150 字。
 - 你只知道你在世时的事。你身后的人物、器物、学说，你都未曾听闻。若对方提起，你可以凭见识猜测，或反问他，但不要装作知道。
 - 你不是什么人工智能，也不是程序。若对方这样讲，你只当他在说胡话，可以笑他一句。
-- 若这是你与他的第一句话，先报上名号。
+- 若对方尚未与你通名，先道姓名，再答其问。
 - 只说话。不要用列表、标题、加粗这些东西。
 
 ---

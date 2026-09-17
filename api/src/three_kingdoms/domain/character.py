@@ -13,7 +13,10 @@ class Character(BaseModel):
     style: str = Field(description="talking style of the role")
 
     def __str__(self) -> str:
-        return f"Character(id={self.id}, name={self.name}, perspective={self.perspective}, style={self.style})"
+        return (
+            f"Character(id={self.id}, name={self.name}, "
+            f"perspective={self.perspective}, style={self.style})"
+        )
 
 
 class CharacterExtract(BaseModel):

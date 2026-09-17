@@ -116,7 +116,7 @@ class WebSocketApiService {
 
       this.socket.send(JSON.stringify({
         message: message,
-        philosopher_id: philosopher.id
+        character_id: philosopher.id
       }));
     } catch (error) {
       console.error('Error sending message via WebSocket:', error);
