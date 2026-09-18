@@ -8,14 +8,22 @@ from three_kingdoms.application.conversation_service.generate_response import (
     get_response,
     get_streaming_response,
 )
+from three_kingdoms.application.conversation_service.reset_conversation import (
+    reset_conversation_state,
+)
 from three_kingdoms.domain.character_factory import CharacterFactory
+from three_kingdoms.domain.exceptions import CharacterNotFound
+from three_kingdoms.infrastructure.mongo.checkpointer import (
+    close_checkpointer,
+    init_checkpointer,
+)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # 启动时
+    init_checkpointer()
     yield
-    # 关闭时
+    close_checkpointer()
 
 
 app = FastAPI(lifespan=lifespan)
@@ -93,6 +101,16 @@ async def websocket_chat(websocket: WebSocket):
 
     except WebSocketDisconnect:
         pass
+
+
+@app.post("/reset-memory")
+async def reset_memory(character_id: str | None = None):
+    try:
+        return await reset_conversation_state(character_id)
+    except CharacterNotFound as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":

@@ -4,7 +4,11 @@ from langchain_groq import ChatGroq
 from langchain_openai import ChatOpenAI
 
 from three_kingdoms.config import settings
-from three_kingdoms.domain.prompts import CHARACTER_CARD
+from three_kingdoms.domain.prompts import (
+    CHARACTER_CARD,
+    EXTEND_SUMMARY_PROMPT,
+    SUMMARY_PROMPT,
+)
 
 
 def get_chat_model(
@@ -34,6 +38,20 @@ def get_character_response_chain():
         [
             ("system", CHARACTER_CARD.prompt),
             MessagesPlaceholder(variable_name="messages"),
+        ],
+        template_format="jinja2",
+    )
+    return prompt | model
+
+
+def get_conversation_summary_chain(summary: str = ""):
+    model = get_chat_model(temperature=0.3)
+    summary_message = EXTEND_SUMMARY_PROMPT if summary else SUMMARY_PROMPT
+
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            MessagesPlaceholder(variable_name="messages"),
+            ("human", summary_message.prompt),
         ],
         template_format="jinja2",
     )

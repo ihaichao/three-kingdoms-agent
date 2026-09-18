@@ -10,6 +10,9 @@ from three_kingdoms.application.conversation_service.workflow.state import (
     CharacterState,
 )
 from three_kingdoms.domain.character import Character
+from three_kingdoms.infrastructure.mongo.checkpointer import (
+    get_checkpointer,
+)
 
 
 async def get_response(
@@ -20,7 +23,7 @@ async def get_response(
     graph_builder = create_workflow_graph()
 
     try:
-        graph = graph_builder.compile()
+        graph = graph_builder.compile(checkpointer=get_checkpointer())
 
         thread_id = character.id if not new_thread else f"{character.id}-{uuid.uuid4()}"
         config = {
@@ -32,7 +35,6 @@ async def get_response(
                 "character_name": character.name,
                 "character_perspective": character.perspective,
                 "character_style": character.style,
-                "summary": "",
             },
             config=config,
         )
@@ -50,7 +52,7 @@ async def get_streaming_response(
     graph_builder = create_workflow_graph()
 
     try:
-        graph = graph_builder.compile()
+        graph = graph_builder.compile(checkpointer=get_checkpointer())
 
         thread_id = character.id if not new_thread else f"{character.id}-{uuid.uuid4()}"
         config = {
@@ -63,7 +65,6 @@ async def get_streaming_response(
                 "character_name": character.name,
                 "character_perspective": character.perspective,
                 "character_style": character.style,
-                "summary": "",
             },
             config=config,
             stream_mode="messages",

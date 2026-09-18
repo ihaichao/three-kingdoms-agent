@@ -71,3 +71,23 @@ __CHARACTER_CARD = """
 """
 
 CHARACTER_CARD = Prompt(name="character_card", prompt=__CHARACTER_CARD)
+
+
+__SUMMARY_PROMPT = """请为{{character_name}}与对方的这段对话写一段梗概。
+用简洁的中文，不超过 200 字。
+必须保留：对方的自称与身份、双方提到的具体人事物、{{character_name}}做过的承诺或断言。
+只输出梗概本身，不要任何前言。梗概："""
+
+SUMMARY_PROMPT = Prompt(name="summary_prompt", prompt=__SUMMARY_PROMPT)
+
+
+__EXTEND_SUMMARY_PROMPT = """以下是{{character_name}}与对方此前对话的梗概：
+
+{{summary}}
+
+请结合上面的新消息，续写更新这份梗概。仍用中文，不超过 200 字，
+保留原梗概中仍然有效的信息，删去已被推翻的部分。只输出新的梗概："""
+
+EXTEND_SUMMARY_PROMPT = Prompt(
+    name="extend_summary_prompt", prompt=__EXTEND_SUMMARY_PROMPT
+)
