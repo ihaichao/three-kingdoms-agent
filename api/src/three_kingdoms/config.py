@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from typing import Literal
 
 from pydantic import Field, SecretStr, model_validator
@@ -21,7 +22,7 @@ class Settings(BaseSettings):
 
     RAG_TEXT_EMBEDDING_MODEL_ID: str = "baai/bge-m3"
     RAG_TEXT_EMBEDDING_MODEL_DIM: int = 1024
-    RAG_CHUNK_SIZE: int = 400
+    RAG_CHUNK_SIZE: int = 700
     RAG_TOP_K: int = 5
 
     MONGO_URI: str = Field(
@@ -41,6 +42,23 @@ class Settings(BaseSettings):
         default="three-kingdoms-agent",
         description="Project name for Comet ML and Opik tracking.",
     )
+
+    CORPUS: Literal["yanyi", "zhi"] = "yanyi"
+
+    EVALUATION_DATASET_FILE_PATH: Path = Path("data/evaluation_dataset.json")
+    # 数据集改了结构或出题规则就**换名字**，不要往旧的里灌。
+    # Opik 的 insert 是幂等追加（deduplication=True），新旧混在一起会变成
+    # 400 条半新半旧的题，基线就毁了。换名字还能留着旧数据集做对照。
+    #   v1 = 单 chunk 当 context，出题没有时空定语约束（基线 0.181，已废弃）
+    #   v2 = context 扩到前后各一段，出题强制时空定语 + 独立成立自检
+    OPIK_DATASET_NAME: str = "three_kingdoms_qa_v2"
+    EVALUATION_JUDGE_MODEL: str = "openrouter/openai/gpt-4o-mini"
+    EVALUATION_SAMPLE_SIZE: int = 200
+    # 判官的 context 往前后各扩几段（同一回之内）。
+    # 0 = 只给出题依据的那一段（会产生大量误判，见 EvaluationSample.context_window）。
+    # 1 ≈ 2100 字，够覆盖"前后贯通的背景"这类误判，判官又不至于大海捞针。
+    # 想试整回就调大，判官成本大致线性增长。
+    EVALUATION_CONTEXT_NEIGHBORS: int = 1
 
     TOTAL_MESSAGES_SUMMARY_TRIGGER: int = 30
     TOTAL_MESSAGES_AFTER_SUMMARY: int = 5
