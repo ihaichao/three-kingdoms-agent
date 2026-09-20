@@ -34,7 +34,7 @@ make infrastructure-up
 - [✓] 模块 0：脚手架搭好，环境跑通
 - [✓] 模块 1：裸 LangGraph，六个三国人物能对话（无记忆）
 - [✓] 模块 2：短期记忆 —— checkpointer + 对话摘要 + /reset-memory
-- [ ] 模块 3：RAG 长期记忆
+- [✓] 模块 3：RAG 长期记忆
 - [ ] 模块 4：评估 + LLMOps
 - [ ] 模块 5：迁移到 Postgres + pgvector
 - [ ] 模块 6：换角色美术、加自己的功能

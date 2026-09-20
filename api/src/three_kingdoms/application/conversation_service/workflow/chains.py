@@ -3,6 +3,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_groq import ChatGroq
 from langchain_openai import ChatOpenAI
 
+from three_kingdoms.application.conversation_service.workflow.tools import tools
 from three_kingdoms.config import settings
 from three_kingdoms.domain.prompts import (
     CHARACTER_CARD,
@@ -33,7 +34,7 @@ def get_chat_model(
 
 
 def get_character_response_chain():
-    model = get_chat_model()
+    model = get_chat_model().bind_tools(tools)
     prompt = ChatPromptTemplate.from_messages(
         [
             ("system", CHARACTER_CARD.prompt),

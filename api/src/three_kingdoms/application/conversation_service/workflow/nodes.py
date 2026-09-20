@@ -9,22 +9,24 @@ from three_kingdoms.application.conversation_service.workflow.state import (
     CharacterState,
 )
 from three_kingdoms.config import settings
+from three_kingdoms.infrastructure.timing import timed
 
 
 async def conversation_node(state: CharacterState, config: RunnableConfig):
     summary = state.get("summary", "")
     chain = get_character_response_chain()
 
-    response = await chain.ainvoke(
-        {
-            "messages": state["messages"],
-            "character_name": state["character_name"],
-            "character_perspective": state["character_perspective"],
-            "character_style": state["character_style"],
-            "summary": summary,
-        },
-        config,
-    )
+    with timed("conversation_node LLM"):
+        response = await chain.ainvoke(
+            {
+                "messages": state["messages"],
+                "character_name": state["character_name"],
+                "character_perspective": state["character_perspective"],
+                "character_style": state["character_style"],
+                "summary": summary,
+            },
+            config,
+        )
 
     return {"messages": response}
 
@@ -32,13 +34,14 @@ async def conversation_node(state: CharacterState, config: RunnableConfig):
 async def summarize_conversation_node(state: CharacterState):
     summary = state.get("summary", "")
     chain = get_conversation_summary_chain(summary)
-    response = await chain.ainvoke(
-        {
-            "messages": state["messages"],
-            "character_name": state["character_name"],
-            "summary": summary,
-        }
-    )
+    with timed("summarize_node LLM"):
+        response = await chain.ainvoke(
+            {
+                "messages": state["messages"],
+                "character_name": state["character_name"],
+                "summary": summary,
+            }
+        )
 
     delete_messages = [
         RemoveMessage(id=m.id)

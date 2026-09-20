@@ -1,7 +1,9 @@
+import time
 import uuid
 from typing import Any, AsyncGenerator, Union
 
 from langchain_core.messages import AIMessage, AIMessageChunk, HumanMessage
+from loguru import logger
 
 from three_kingdoms.application.conversation_service.workflow.graph import (
     create_workflow_graph,
@@ -32,6 +34,7 @@ async def get_response(
         output_state = await graph.ainvoke(
             input={
                 "messages": __format_messages(messages=messages),
+                "character_id": character.id,
                 "character_name": character.name,
                 "character_perspective": character.perspective,
                 "character_style": character.style,
@@ -59,9 +62,14 @@ async def get_streaming_response(
             "configurable": {"thread_id": thread_id},
         }
 
+        started = time.perf_counter()
+        first_content_sent = False
+        empty_chunks = 0
+
         async for chunk in graph.astream(
             input={
                 "messages": __format_messages(messages=messages),
+                "character_id": character.id,
                 "character_name": character.name,
                 "character_perspective": character.perspective,
                 "character_style": character.style,
@@ -72,7 +80,21 @@ async def get_streaming_response(
             if chunk[1]["langgraph_node"] == "conversation_node" and isinstance(
                 chunk[0], AIMessageChunk
             ):
+                if not chunk[0].content:
+                    # 生成 tool_call 或 reasoning 时 content 为空，不往前端发
+                    empty_chunks += 1
+                    continue
+
+                if not first_content_sent:
+                    first_content_sent = True
+                    logger.info(
+                        f"[耗时] 首字延迟: {time.perf_counter() - started:.2f}s "
+                        f"（其间跳过 {empty_chunks} 个空 chunk）"
+                    )
+
                 yield chunk[0].content
+
+        logger.info(f"[耗时] 整轮总计: {time.perf_counter() - started:.2f}s")
 
     except Exception as e:
         raise RuntimeError(

@@ -20,5 +20,9 @@ infrastructure-logs:
 
 # --- Offline pipelines (等后面模块写好 tools/ 再启用) ---
 
-# create-long-term-memory:
-# 	docker run --rm --network=three-kingdoms-network --env-file api/.env -v ./api/data:/app/data three-kingdoms-agent-api uv run python -m tools.create_long_term_memory
+create-long-term-memory:
+	docker run --rm --network=three-kingdoms-network --env-file api/.env \
+	 -v ./api/src/three_kingdoms:/app/three_kingdoms \
+	 -v ./api/tools:/app/tools \
+	 -v ./api/data:/app/data three-kingdoms-agent-api \
+	 /app/.venv/bin/python -m tools.create_long_term_memory

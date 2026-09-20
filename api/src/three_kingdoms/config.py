@@ -19,6 +19,11 @@ class Settings(BaseSettings):
     GROQ_API_KEY: SecretStr | None = None
     GROQ_LLM_MODEL: str = "llama-3.3-70b-versatile"
 
+    RAG_TEXT_EMBEDDING_MODEL_ID: str = "baai/bge-m3"
+    RAG_TEXT_EMBEDDING_MODEL_DIM: int = 1024
+    RAG_CHUNK_SIZE: int = 400
+    RAG_TOP_K: int = 5
+
     MONGO_URI: str = Field(
         default="mongodb://tkagent:tkagent@local_dev_atlas:27017/?directConnection=true",
         description="Connection URI for the local MongoDB Atlas instance.",
@@ -26,6 +31,8 @@ class Settings(BaseSettings):
     MONGO_DB_NAME: str = "three_kingdoms"
     MONGO_STATE_CHECKPOINT_COLLECTION: str = "state_checkpoints"
     MONGO_STATE_WRITES_COLLECTION: str = "state_writes"
+    MONGO_LONG_TERM_MEMORY_COLLECTION: str = "long_term_memory"
+    MONGO_VECTOR_INDEX_NAME: str = "vector_index"
 
     COMET_API_KEY: str | None = Field(
         default=None, description="API key for Comet ML and Opik services."
