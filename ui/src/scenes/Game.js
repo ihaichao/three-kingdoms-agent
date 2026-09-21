@@ -35,26 +35,6 @@ export class Game extends Scene
         this.setupControls(camera);
 
         this.setupDialogueSystem();
-
-        this.dialogueBox = new DialogueBox(this);
-        this.dialogueText = this.add
-            .text(60, this.game.config.height - maxDialogueHeight - screenPadding + screenPadding, '', {
-            font: "18px monospace",
-            fill: "#ffffff",
-            padding: { x: 20, y: 10 },
-            wordWrap: { width: 680 },
-            lineSpacing: 6,
-            maxLines: 5
-            })
-            .setScrollFactor(0)
-            .setDepth(30)
-            .setVisible(false);
-
-        this.spaceKey = this.input.keyboard.addKey('SPACE');
-
-        // Initialize the dialogue manager
-        this.dialogueManager = new DialogueManager(this);
-        this.dialogueManager.initialize(this.dialogueBox);
     }
 
     createPhilosophers(map, layers) {

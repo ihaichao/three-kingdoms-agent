@@ -123,20 +123,36 @@ class DialogueManager {
     if (!this.domInput || !this.scene?.game?.canvas) return;
     const canvas = this.scene.game.canvas;
     const rect = canvas.getBoundingClientRect();
-    const scaleX = rect.width / (this.scene.game.config.width || 1024);
-    const scaleY = rect.height / (this.scene.game.config.height || 768);
+    const configWidth = this.scene.game.config.width || 1280;
+    const configHeight = this.scene.game.config.height || 720;
+    const scaleX = rect.width / configWidth;
+    const scaleY = rect.height / configHeight;
 
-    const x = rect.left + 120 * scaleX;
-    const y = rect.top + 520 * scaleY;
-    const width = 784 * scaleX;
-    const height = 160 * scaleY;
-    const fontSize = Math.max(14, Math.round(24 * scaleY));
+    const boxX = (this.dialogueBox && typeof this.dialogueBox.textInputX === 'number')
+      ? this.dialogueBox.textInputX
+      : 280;
+    const boxY = (this.dialogueBox && typeof this.dialogueBox.textInputY === 'number')
+      ? this.dialogueBox.textInputY
+      : 500;
+    const boxWidth = (this.dialogueBox && typeof this.dialogueBox.textInputWidth === 'number')
+      ? this.dialogueBox.textInputWidth
+      : 800;
+    const boxHeight = (this.dialogueBox && typeof this.dialogueBox.textInputHeight === 'number')
+      ? this.dialogueBox.textInputHeight
+      : 180;
+
+    const x = rect.left + boxX * scaleX;
+    const y = rect.top + boxY * scaleY;
+    const width = Math.max(100, boxWidth * scaleX);
+    const height = Math.max(50, boxHeight * scaleY);
+    const fontSize = Math.max(24, Math.round(38 * scaleY));
 
     this.domInput.style.left = `${x}px`;
     this.domInput.style.top = `${y}px`;
     this.domInput.style.width = `${width}px`;
     this.domInput.style.height = `${height}px`;
     this.domInput.style.fontSize = `${fontSize}px`;
+    this.domInput.style.lineHeight = '1.45';
   }
 
   enableInput() {
@@ -180,9 +196,10 @@ class DialogueManager {
 
   async handleEnterKey() {
     if (this.currentMessage.trim() !== '') {
+      const charName = this.activePhilosopher?.name || '名将';
       this.disableInput();
-      this.dialogueBox.show('...', true);
       this.stopCursorBlink();
+      this.dialogueBox.showLoading(charName);
 
       if (this.activePhilosopher.defaultMessage) {
         await this.handleDefaultMessage();
@@ -203,14 +220,29 @@ class DialogueManager {
 
   async handleDefaultMessage() {
     const apiResponse = this.activePhilosopher.defaultMessage;
+    await new Promise(resolve => setTimeout(resolve, 600));
+    this.dialogueBox.hideLoading();
     this.dialogueBox.show('', true);
     await this.streamText(apiResponse);
   }
 
+  filterThinkingContent(text) {
+    if (!text) return '';
+    // 1. Remove completely closed <thinking>...</thinking>, <thought>...</thought>, <reasoning>...</reasoning>, <think>...</think>
+    let clean = text.replace(/<(thinking|thought|reasoning|think)>[\s\S]*?<\/\1>/gi, '');
+    // 2. Remove open/in-progress <thinking>... that hasn't closed yet
+    clean = clean.replace(/<(thinking|thought|reasoning|think)>[\s\S]*$/gi, '');
+    // 3. Remove trailing incomplete tags like "<think..." or "</think..."
+    clean = clean.replace(/<\/?(?:thinking|thought|reasoning|think)?[^>]*$/gi, '');
+    return clean.trimStart();
+  }
+
   async handleWebSocketMessage() {
-    this.dialogueBox.show('', true);
+    const charName = this.activePhilosopher?.name || '名将';
+    this.dialogueBox.showLoading(charName);
     this.isStreaming = true;
     this.streamingText = '';
+    this.rawStreamedText = '';
 
     try {
       await this.processWebSocketMessage();
@@ -218,6 +250,7 @@ class DialogueManager {
       console.error('WebSocket error:', error);
       await this.fallbackToRegularApi();
     } finally {
+      this.dialogueBox.hideLoading();
       this.isTyping = false;
     }
   }
@@ -230,8 +263,17 @@ class DialogueManager {
         this.finishStreaming();
       },
       onChunk: (chunk) => {
-        this.streamingText += chunk;
-        this.dialogueBox.show(this.streamingText, true);
+        this.rawStreamedText = (this.rawStreamedText || '') + chunk;
+        const cleanText = this.filterThinkingContent(this.rawStreamedText);
+
+        // Only hide loading and show text once the thinking tag has closed and actual dialogue begins!
+        if (cleanText.length > 0) {
+          if (this.dialogueBox.isLoading) {
+            this.dialogueBox.hideLoading();
+          }
+          this.streamingText = cleanText;
+          this.dialogueBox.show(this.streamingText, true);
+        }
       },
       onStreamingStart: () => {
         this.isStreaming = true;
@@ -256,16 +298,28 @@ class DialogueManager {
   }
 
   finishStreaming() {
+    this.dialogueBox.hideLoading();
     this.isStreaming = false;
+    const cleanText = this.filterThinkingContent(this.rawStreamedText || this.streamingText);
+    this.streamingText = cleanText || '（名将沉吟良久，未置可否）';
     this.dialogueBox.show(this.streamingText, true);
   }
 
   async fallbackToRegularApi() {
-    const apiResponse = await ApiService.sendMessage(
-      this.activePhilosopher,
-      this.currentMessage
-    );
-    await this.streamText(apiResponse);
+    const charName = this.activePhilosopher?.name || '名将';
+    this.dialogueBox.showLoading(charName);
+    try {
+      const apiResponse = await ApiService.sendMessage(
+        this.activePhilosopher,
+        this.currentMessage
+      );
+      this.dialogueBox.hideLoading();
+      const cleanResponse = this.filterThinkingContent(apiResponse);
+      await this.streamText(cleanResponse);
+    } catch (err) {
+      this.dialogueBox.hideLoading();
+      this.dialogueBox.show('（与名将对话连接中断，请稍后再试）', true);
+    }
   }
 
   // === UI Management ===
@@ -317,6 +371,9 @@ class DialogueManager {
     this.activePhilosopher = philosopher;
     this.currentMessage = '';
 
+    if (this.dialogueBox && typeof this.dialogueBox.setCharacter === 'function') {
+      this.dialogueBox.setCharacter(philosopher);
+    }
     this.dialogueBox.show('|', true);
     this.stopCursorBlink();
 

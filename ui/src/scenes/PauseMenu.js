@@ -15,30 +15,35 @@ export class PauseMenu extends Scene {
         const centerY = this.cameras.main.height / 2;
 
         const panel = this.add.graphics();
-        panel.fillStyle(0xffffff, 1);
-        panel.fillRoundedRect(centerX - 200, centerY - 150, 400, 300, 20);
-        panel.lineStyle(4, 0x000000, 1);
-        panel.strokeRoundedRect(centerX - 200, centerY - 150, 400, 300, 20);
+        // Deep ink background
+        panel.fillStyle(0x0e111a, 0.95);
+        panel.fillRoundedRect(centerX - 200, centerY - 160, 400, 320, 16);
+        // Outer gold border
+        panel.lineStyle(2, 0xd4af37, 1);
+        panel.strokeRoundedRect(centerX - 200, centerY - 160, 400, 320, 16);
+        // Inner bronze line
+        panel.lineStyle(1, 0x856828, 0.6);
+        panel.strokeRoundedRect(centerX - 194, centerY - 154, 388, 308, 12);
 
-        this.add.text(centerX, centerY - 120, 'GAME PAUSED', {
+        this.add.text(centerX, centerY - 115, '游戏暂停', {
             fontSize: '28px',
-            fontFamily: 'Arial',
-            color: '#000000',
+            fontFamily: '"PingFang SC", "Microsoft YaHei", "SimHei", Arial, sans-serif',
+            color: '#ffeed0',
             fontStyle: 'bold'
         }).setOrigin(0.5);
 
-        const buttonY = centerY - 50;
-        const buttonSpacing = 70;
+        const buttonY = centerY - 45;
+        const buttonSpacing = 68;
 
-        this.createButton(centerX, buttonY, 'Resume Game', () => {
+        this.createButton(centerX, buttonY, '继续游戏', () => {
             this.resumeGame();
         });
 
-        this.createButton(centerX, buttonY + buttonSpacing, 'Main Menu', () => {
+        this.createButton(centerX, buttonY + buttonSpacing, '返回主界面', () => {
             this.returnToMainMenu();
         });
 
-        this.createButton(centerX, buttonY + buttonSpacing * 2, 'Reset Game', () => {
+        this.createButton(centerX, buttonY + buttonSpacing * 2, '重置对话记忆', () => {
             this.resetGame();
         });
 
@@ -48,17 +53,17 @@ export class PauseMenu extends Scene {
     }
 
     createButton(x, y, text, callback) {
-        const buttonWidth = 250;
-        const buttonHeight = 50;
-        const cornerRadius = 15;
+        const buttonWidth = 260;
+        const buttonHeight = 48;
+        const cornerRadius = 12;
 
         const shadow = this.add.graphics();
-        shadow.fillStyle(0x000000, 0.4);
-        shadow.fillRoundedRect(x - buttonWidth / 2 + 5, y - buttonHeight / 2 + 5, buttonWidth, buttonHeight, cornerRadius);
+        shadow.fillStyle(0x000000, 0.5);
+        shadow.fillRoundedRect(x - buttonWidth / 2 + 3, y - buttonHeight / 2 + 3, buttonWidth, buttonHeight, cornerRadius);
 
         const button = this.add.graphics();
-        button.fillStyle(0x4a90e2, 1);
-        button.lineStyle(2, 0x3a70b2, 1);
+        button.fillStyle(0x7a1818, 1);
+        button.lineStyle(2, 0xd4af37, 1);
         button.fillRoundedRect(x - buttonWidth / 2, y - buttonHeight / 2, buttonWidth, buttonHeight, cornerRadius);
         button.strokeRoundedRect(x - buttonWidth / 2, y - buttonHeight / 2, buttonWidth, buttonHeight, cornerRadius);
         button.setInteractive(
@@ -67,16 +72,16 @@ export class PauseMenu extends Scene {
         );
 
         const buttonText = this.add.text(x, y, text, {
-            fontSize: '22px',
-            fontFamily: 'Arial',
-            color: '#FFFFFF',
+            fontSize: '20px',
+            fontFamily: '"PingFang SC", "Microsoft YaHei", "SimHei", Arial, sans-serif',
+            color: '#ffeed0',
             fontStyle: 'bold'
         }).setOrigin(0.5);
 
         button.on('pointerover', () => {
             button.clear();
-            button.fillStyle(0x5da0f2, 1);
-            button.lineStyle(2, 0x3a70b2, 1);
+            button.fillStyle(0x9a2424, 1);
+            button.lineStyle(2, 0xffe066, 1);
             button.fillRoundedRect(x - buttonWidth / 2, y - buttonHeight / 2, buttonWidth, buttonHeight, cornerRadius);
             button.strokeRoundedRect(x - buttonWidth / 2, y - buttonHeight / 2, buttonWidth, buttonHeight, cornerRadius);
             buttonText.y -= 2;
@@ -84,8 +89,8 @@ export class PauseMenu extends Scene {
 
         button.on('pointerout', () => {
             button.clear();
-            button.fillStyle(0x4a90e2, 1);
-            button.lineStyle(2, 0x3a70b2, 1);
+            button.fillStyle(0x7a1818, 1);
+            button.lineStyle(2, 0xd4af37, 1);
             button.fillRoundedRect(x - buttonWidth / 2, y - buttonHeight / 2, buttonWidth, buttonHeight, cornerRadius);
             button.strokeRoundedRect(x - buttonWidth / 2, y - buttonHeight / 2, buttonWidth, buttonHeight, cornerRadius);
             buttonText.y += 2;
@@ -119,10 +124,10 @@ export class PauseMenu extends Scene {
             const centerX = this.cameras.main.width / 2;
             const centerY = this.cameras.main.height / 2 + 120;
 
-            const errorText = this.add.text(centerX, centerY, 'Failed to reset game. Try again.', {
+            const errorText = this.add.text(centerX, centerY, '重置记忆失败，请稍后重试', {
                 fontSize: '16px',
-                fontFamily: 'Arial',
-                color: '#FF0000'
+                fontFamily: '"PingFang SC", "Microsoft YaHei", "SimHei", Arial, sans-serif',
+                color: '#FF6B6B'
             }).setOrigin(0.5);
 
             this.time.delayedCall(3000, () => {

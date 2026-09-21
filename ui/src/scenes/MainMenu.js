@@ -6,23 +6,24 @@ export class MainMenu extends Scene {
     }
 
     create() {
-        this.add.image(0, 0, 'background').setOrigin(0, 0);
-        this.add.image(510, 260, 'logo').setScale(0.55);
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        const centerX = width / 2;
+        const centerY = height / 2;
 
-        const centerX = this.cameras.main.width / 2;
-        const startY = 524;
-        const buttonSpacing = 70;
+        const bg = this.add.image(centerX, centerY, 'background');
+        const scale = Math.max(width / bg.width, height / bg.height);
+        bg.setScale(scale);
 
-        this.createButton(centerX, startY, 'Let\'s Play!', () => {
+        const startY = 500;
+        const buttonSpacing = 72;
+
+        this.createButton(centerX, startY, '进入游戏', () => {
             this.scene.start('Game');
         });
 
-        this.createButton(centerX, startY + buttonSpacing, 'Instructions', () => {
+        this.createButton(centerX, startY + buttonSpacing, '操作说明', () => {
             this.showInstructions();
-        });
-
-        this.createButton(centerX, startY + buttonSpacing * 2, 'Support Philoagents', () => {
-            window.open('https://github.com/neural-maze/philoagents-course', '_blank');
         });
     }
 
@@ -52,7 +53,7 @@ export class MainMenu extends Scene {
 
             buttonText = this.add.text(x, y, text, {
                 fontSize: `${fontSize}px`,
-                fontFamily: 'Arial',
+                fontFamily: '"PingFang SC", "Microsoft YaHei", "SimHei", Arial, sans-serif',
                 color: '#000000',
                 fontStyle: 'bold'
             }).setOrigin(0.5);
@@ -134,17 +135,17 @@ export class MainMenu extends Scene {
     }
 
     addInstructionContent(centerX, centerY, panel) {
-        const title = this.add.text(centerX, centerY - 110, 'INSTRUCTIONS', {
+        const title = this.add.text(centerX, centerY - 110, '操作说明', {
             fontSize: '28px',
-            fontFamily: 'Arial',
+            fontFamily: '"PingFang SC", "Microsoft YaHei", "SimHei", Arial, sans-serif',
             color: '#000000',
             fontStyle: 'bold'
         }).setOrigin(0.5);
 
         const instructions = [
-            'Arrow keys for moving',
-            'SPACE for talking to philosophers',
-            'ESC for closing the dialogue'
+            '方向键 (↑ ↓ ← →)：控制人物移动',
+            '空格键 (Space)：与人物对话',
+            'ESC 键：关闭对话 / 暂停游戏'
         ];
 
         const textElements = [];
@@ -152,9 +153,9 @@ export class MainMenu extends Scene {
         instructions.forEach(instruction => {
             textElements.push(
                 this.add.text(centerX, yPos, instruction, {
-                    fontSize: '22px',
-                    fontFamily: 'Arial',
-                    color: '#000000'
+                    fontSize: '20px',
+                    fontFamily: '"PingFang SC", "Microsoft YaHei", "SimHei", Arial, sans-serif',
+                    color: '#333333'
                 }).setOrigin(0.5)
             );
             yPos += 40;
@@ -176,9 +177,9 @@ export class MainMenu extends Scene {
         closeButton.lineStyle(2, 0x000000, 1);
         closeButton.strokeRoundedRect(x - buttonWidth / 2, adjustedY - buttonHeight / 2, buttonWidth, buttonHeight, cornerRadius);
 
-        const closeText = this.add.text(x, adjustedY, 'Close', {
+        const closeText = this.add.text(x, adjustedY, '关闭', {
             fontSize: '20px',
-            fontFamily: 'Arial',
+            fontFamily: '"PingFang SC", "Microsoft YaHei", "SimHei", Arial, sans-serif',
             color: '#000000',
             fontStyle: 'bold'
         }).setOrigin(0.5);
