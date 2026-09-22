@@ -1,7 +1,15 @@
-# 生产编排（方案 ②）
+# 生产编排（方案 ③：接入宿主机既有 nginx）
 #
 #   浏览器 ──> Cloudflare Pages（静态资源，不在这台机器上）
-#          └─> Caddy :443 ──> api:8000 ──> MongoDB Atlas 云（不在这台机器上）
+#          └─> 宿主机 nginx :80/:443（这台机器上跑的是共享 VPS，
+#              已经用 certbot / Cloudflare Origin Cert 给别的站点管了证书）
+#              ──> 127.0.0.1:8000 ──> api 容器 ──> MongoDB Atlas 云
+#
+# 之前（方案 ②）是 Caddy 自己占 80/443 签证书，但这台机器是共享的：
+# 系统 nginx 已经用 80/443 给 tradecafe.live / remotecn.com 服务，Caddy 会
+# 端口冲突起不来。所以改成跟其它项目一样，接入宿主机 nginx，nginx 反代到
+# 这里映射出来的 127.0.0.1:8000。nginx vhost 配置不在这个仓库里，在
+# /etc/nginx/sites-available/threekingdoms-api.zongzheng.dev。
 #
 # 跟 docker-compose.yml（开发版）的区别，每一条都有原因：
 #
@@ -9,7 +17,7 @@
 #                            而且它在开发版里把 27017 映射到了宿主机，公网上
 #                            几小时就会被扫到。
 #   2. 没有 ui 服务       —— 静态资源交给 CDN，这台机器不扛前端流量。
-#   3. api 不映射端口     —— 只在 compose 内网暴露，外面只能经 Caddy 进来。
+#   3. api 只映射到 127.0.0.1 —— 不直接对公网开放，外面只能经宿主机 nginx 进来。
 #   4. 没有 bind mount    —— 代码烘进镜像，服务器上不放源码。
 #   5. 不覆盖 command     —— 走 Dockerfile 里的 `fastapi run`，不是 `fastapi dev`。
 #
@@ -23,8 +31,8 @@ services:
     restart: unless-stopped
     env_file:
       - ./api/.env.prod
-    expose:
-      - "8000"          # 只对 compose 内网，不是 ports
+    ports:
+      - "127.0.0.1:8000:8000"   # 只绑本机回环，公网访问必须经宿主机 nginx
     networks:
       - tk-prod
     healthcheck:
@@ -38,31 +46,6 @@ services:
       options:
         max-size: "10m"    # 不加这个，日志会慢慢吃满磁盘
         max-file: "3"
-
-  caddy:
-    image: caddy:2-alpine
-    restart: unless-stopped
-    ports:
-      - "80:80"           # 80 是 Let's Encrypt 签发和续期必需的，不能只开 443
-      - "443:443"
-      - "443:443/udp"     # HTTP/3
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data      # 证书在这里，删了就要重新签发（有速率限制）
-      - caddy_config:/config
-    networks:
-      - tk-prod
-    depends_on:
-      - api
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-volumes:
-  caddy_data:
-  caddy_config:
 
 networks:
   tk-prod:
