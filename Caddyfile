@@ -1,0 +1,55 @@
+# threekingdoms-api.zongzheng.dev 的 A 记录要指向这台 VPS。
+# Caddy 自动申请并续期 Let's Encrypt 证书——前提是 80 端口能从公网访问
+# （HTTP-01 挑战走 80，只开 443 签不下来）。
+#
+# 子域命名是扁平的（threekingdoms-api 而不是 api.threekingdoms），因为通配符只匹配一层：
+# *.zongzheng.dev 覆盖 threekingdoms-api.zongzheng.dev，覆盖不了 api.threekingdoms.zongzheng.dev。
+# 以后想用一张通配证书、或把 API 挂 Cloudflare 橙云（免费版 Universal SSL
+# 同样只覆盖一级子域），嵌套命名会变成麻烦。
+
+threekingdoms-api.zongzheng.dev {
+	# WebSocket 不需要任何特殊配置。Caddy v2 的 reverse_proxy 会透传
+	# Upgrade 握手，这一点跟 nginx 不同（nginx 要手写 proxy_set_header Upgrade）。
+	reverse_proxy api:8000 {
+		# 流式响应必须关缓冲，否则 Caddy 会攒够一块才发，
+		# 前端看到的就是"卡很久然后整段蹦出来"，首字延迟那些优化全白做。
+		flush_interval -1
+
+		# 一轮对话最长可能跑几十秒（多次工具调用），默认超时会掐断。
+		transport http {
+			read_timeout 300s
+			write_timeout 300s
+		}
+	}
+
+	# 请求体上限。对话消息就几百字节，1MB 绰绰有余，
+	# 顺手挡掉拿大 body 打服务的。
+	request_body {
+		max_size 1MB
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		-Server                      # 不暴露服务端软件
+	}
+
+	log {
+		output file /data/access.log {
+			roll_size 10MB
+			roll_keep 3
+		}
+		format json
+	}
+}
+
+# 说明：这里**没有**配限流。
+#
+# Caddy v2 核心不带限流，要用 mholt/caddy-ratelimit 插件，而那需要 xcaddy
+# 自行编译镜像——为了一个 demo 引入自定义构建链不划算。
+#
+# 限流放在两个更合适的地方：
+#   1. 应用层：WebSocket 的消息循环里限速 + 限每 IP 并发连接数。
+#      花钱的是那个循环，在那里限最准。
+#   2. Cloudflare：API 域名也挂到 Cloudflare 后面（橙云），
+#      免费版的 WAF 速率规则够用，而且在流量到达 VPS 之前就挡掉。

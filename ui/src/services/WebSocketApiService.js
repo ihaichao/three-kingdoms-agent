@@ -1,3 +1,5 @@
+import { WS_BASE_URL } from './apiConfig';
+
 class WebSocketApiService {
   constructor() {
     // Initialize connection-related properties
@@ -16,15 +18,7 @@ class WebSocketApiService {
   }
 
   determineWebSocketBaseUrl() {
-    const isHttps = window.location.protocol === 'https:';
-
-    if (isHttps) {
-      console.log('Using GitHub Codespaces');
-      const currentHostname = window.location.hostname;
-      return `ws://${currentHostname.replace('8080', '8000')}`;
-    }
-
-    return 'ws://localhost:8000';
+    return WS_BASE_URL;
   }
 
   connect() {

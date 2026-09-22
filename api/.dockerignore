@@ -1,6 +1,10 @@
 data/
 .venv/
 .env
+.env.prod
+.env.*
+!.env.example
+!.env.prod.example
 .DS_Store
 .vscode/
 .ruff_cache/

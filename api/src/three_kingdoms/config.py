@@ -43,6 +43,16 @@ class Settings(BaseSettings):
         description="Project name for Comet ML and Opik tracking.",
     )
 
+    # --- 部署 ---
+    # 允许访问的前端来源，逗号分隔，在 .env 里配。
+    # 留空 = 本地开发模式，放行 localhost 常用端口（见 api.py）。
+    # 生产必须填成 CDN 上那个域名。不能留空，更不能填 "*"。
+    ALLOWED_ORIGINS: str = ""
+
+    # /reset-memory 的口令。留空 = 该接口不注册（生产默认就该这样）。
+    # 它会清掉所有人的对话状态，公开暴露等于给全世界一个重置按钮。
+    ADMIN_TOKEN: SecretStr | None = None
+
     CORPUS: Literal["yanyi", "zhi"] = "yanyi"
 
     EVALUATION_DATASET_FILE_PATH: Path = Path("data/evaluation_dataset.json")

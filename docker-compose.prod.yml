@@ -1,0 +1,69 @@
+# 生产编排（方案 ②）
+#
+#   浏览器 ──> Cloudflare Pages（静态资源，不在这台机器上）
+#          └─> Caddy :443 ──> api:8000 ──> MongoDB Atlas 云（不在这台机器上）
+#
+# 跟 docker-compose.yml（开发版）的区别，每一条都有原因：
+#
+#   1. 没有 mongo 服务    —— 用 Atlas 云 M0。本地那个 atlas-local 是开发镜像，
+#                            而且它在开发版里把 27017 映射到了宿主机，公网上
+#                            几小时就会被扫到。
+#   2. 没有 ui 服务       —— 静态资源交给 CDN，这台机器不扛前端流量。
+#   3. api 不映射端口     —— 只在 compose 内网暴露，外面只能经 Caddy 进来。
+#   4. 没有 bind mount    —— 代码烘进镜像，服务器上不放源码。
+#   5. 不覆盖 command     —— 走 Dockerfile 里的 `fastapi run`，不是 `fastapi dev`。
+#
+# 用法：docker compose -f docker-compose.prod.yml up -d --build
+
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ./api/.env.prod
+    expose:
+      - "8000"          # 只对 compose 内网，不是 ports
+    networks:
+      - tk-prod
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request;urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"    # 不加这个，日志会慢慢吃满磁盘
+        max-file: "3"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"           # 80 是 Let's Encrypt 签发和续期必需的，不能只开 443
+      - "443:443"
+      - "443:443/udp"     # HTTP/3
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data      # 证书在这里，删了就要重新签发（有速率限制）
+      - caddy_config:/config
+    networks:
+      - tk-prod
+    depends_on:
+      - api
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+networks:
+  tk-prod:
+    name: tk-prod

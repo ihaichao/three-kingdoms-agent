@@ -7,6 +7,11 @@ __pycache__/
 # env
 .env
 .env.local
+.env.prod
+.env.*.local
+# 例外：模板要提交
+!.env.example
+!.env.prod.example
 
 # Node
 node_modules/

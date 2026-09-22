@@ -1,14 +1,8 @@
+import { API_BASE_URL } from './apiConfig';
+
 class ApiService {
   constructor() {
-    const isHttps = window.location.protocol === 'https:';
-
-    if (isHttps) {
-      console.log('Using GitHub Codespaces');
-      const currentHostname = window.location.hostname;
-      this.apiUrl = `https://${currentHostname.replace('8080', '8000')}`;
-    } else {
-      this.apiUrl = 'http://localhost:8000';
-    }
+    this.apiUrl = API_BASE_URL;
   }
 
   async request(endpoint, method, data) {
