@@ -16,6 +16,13 @@ class Settings(BaseSettings):
     OPENROUTER_API_KEY: SecretStr | None = None
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
     OPENROUTER_LLM_MODEL: str = "deepseek/deepseek-chat"
+    # 只允许路由到这几家 provider（OpenRouter 的 provider slug，按优先级排），
+    # 且不许回落到别家。不锁的话 OpenRouter 会随机分到某些部署有问题的
+    # provider，返回带 Ġ/Ċ 的未解码 token、无视系统提示答英文。
+    # 名单来自实测，可用的 slug 见
+    # https://openrouter.ai/api/v1/models/<模型名>/endpoints 的 tag 字段。
+    # .env 里写成 JSON 数组；设为 [] 表示不锁，交给 OpenRouter 自动路由。
+    OPENROUTER_PROVIDER_ORDER: list[str] = ["atlas-cloud", "siliconflow", "deepinfra"]
 
     GROQ_API_KEY: SecretStr | None = None
     GROQ_LLM_MODEL: str = "llama-3.3-70b-versatile"

@@ -16,11 +16,20 @@ def get_chat_model(
     temperature: float = 0.7, model_name: str | None = None
 ) -> BaseChatModel:
     if settings.LLM_PROVIDER == "openrouter":
+        extra_body = None
+        if settings.OPENROUTER_PROVIDER_ORDER:
+            extra_body = {
+                "provider": {
+                    "order": settings.OPENROUTER_PROVIDER_ORDER,
+                    "allow_fallbacks": False,
+                }
+            }
         return ChatOpenAI(
             base_url=settings.OPENROUTER_BASE_URL,
             api_key=settings.OPENROUTER_API_KEY.get_secret_value(),
             model=model_name or settings.OPENROUTER_LLM_MODEL,
             temperature=temperature,
+            extra_body=extra_body,
         )
 
     if settings.LLM_PROVIDER == "groq":
